@@ -73,6 +73,8 @@
 	</dependencyManagement>
 
 	<build>
+		<!-- This ensures JAR has a predictable name -->
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
