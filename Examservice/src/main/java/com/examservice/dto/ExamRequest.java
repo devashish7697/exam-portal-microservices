@@ -4,14 +4,14 @@ import java.util.List;
 public class ExamRequest {
     private String title;
     private String description;
-    private List<Long> questionIds;
+    private List<ExamQuestionRequest> questions;
 
     public ExamRequest() {}
 
-    public ExamRequest(String title, String description, List<Long> questionIds) {
+    public ExamRequest(String title, String description, List<ExamQuestionRequest> questions) {
         this.title = title;
         this.description = description;
-        this.questionIds = questionIds;
+        this.questions = questions;
     }
 
     public String getTitle() {
@@ -30,12 +30,12 @@ public class ExamRequest {
         this.description = description;
     }
 
-    public List<Long> getQuestionIds() {
-        return questionIds;
+    public List<ExamQuestionRequest> getQuestions() {
+        return questions;
     }
 
-    public void setQuestionIds(List<Long> questionIds) {
-        this.questionIds = questionIds;
+    public void setQuestions(List<ExamQuestionRequest> questions) {
+        this.questions = questions;
     }
 }
 

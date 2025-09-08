@@ -5,11 +5,11 @@ public class ExamResponse {
     private Long id;
     private String title;
     private String description;
-    private List<QuestionResponse> questions;
+    private List<ExamQuestionResponse> questions;
 
     public ExamResponse() {}
 
-    public ExamResponse(Long id, String title, String description, List<QuestionResponse> questions) {
+    public ExamResponse(Long id, String title, String description, List<ExamQuestionResponse> questions) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -40,11 +40,11 @@ public class ExamResponse {
         this.description = description;
     }
 
-    public List<QuestionResponse> getQuestions() {
+    public List<ExamQuestionResponse> getQuestions() {
         return questions;
     }
 
-    public void setQuestions(List<QuestionResponse> questions) {
+    public void setQuestions(List<ExamQuestionResponse> questions) {
         this.questions = questions;
     }
 }

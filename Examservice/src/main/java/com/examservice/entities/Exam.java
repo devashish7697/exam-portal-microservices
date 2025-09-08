@@ -2,6 +2,7 @@ package com.examservice.entities;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -14,14 +15,19 @@ public class Exam {
     private String title;
     private String discription;
 
-    @ElementCollection
-    private List<Long> questionsIds;
+//    @ElementCollection
+//    private List<Long> questionsIds;
 
-    public Exam(Long id, String title, String discription, List<Long> questionsIds) {
+     // cascade = ALL -> saving exam also saves its examQuestion children.
+     // orphanRemoval = true -> if an ExamQuestion is removed from the list, it will be deleted.
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ExamQuestion> questions = new ArrayList<>();
+
+    public Exam(Long id, String title, String discription, List<ExamQuestion> questions) {
         this.id = id;
         this.title = title;
         this.discription = discription;
-        this.questionsIds = questionsIds;
+        this.questions = questions;
     }
 
     public Exam() {
@@ -44,9 +50,6 @@ public class Exam {
     }
 
 
-    public void setQuestionsIds(List<Long> questionsIds) {
-        this.questionsIds = questionsIds;
-    }
 
     public String getDiscription() {
         return discription;
@@ -56,8 +59,11 @@ public class Exam {
         this.discription = discription;
     }
 
-    public List<Long> getQuestionsIds() {
-        return questionsIds;
+    public List<ExamQuestion> getQuestions() {
+        return questions;
     }
 
+    public void setQuestions(List<ExamQuestion> questions) {
+        this.questions = questions;
+    }
 }

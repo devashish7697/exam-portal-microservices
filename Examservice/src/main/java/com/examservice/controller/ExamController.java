@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -22,9 +23,8 @@ public class ExamController {
 
     @PostMapping
     public ResponseEntity<ExamResponse> create(@RequestBody ExamRequest request) {
-        Exam exam = service.createExam(request);
-        ExamResponse response = toResponse(exam);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        ExamResponse response = service.createExam(request);
+        return ResponseEntity.created(URI.create("exams/" + response.getId())).body(response);
     }
 
     @GetMapping
@@ -42,8 +42,8 @@ public class ExamController {
     @PutMapping("/{id}")
     public ResponseEntity<ExamResponse> update(@PathVariable Long id,
                                                @RequestBody ExamRequest request) {
-        Exam exam = service.updateExam(id, request);
-        return ResponseEntity.ok(toResponse(exam));
+        ExamResponse updated = service.updateExam(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
@@ -52,11 +52,4 @@ public class ExamController {
         return ResponseEntity.ok("Exam deleted successfully with id = " + id);
     }
 
-    private ExamResponse toResponse(Exam exam) {
-        ExamResponse response = new ExamResponse();
-        response.setId(exam.getId());
-        response.setTitle(exam.getTitle());
-        response.setDescription(exam.getDiscription());
-        return response;
-    }
 }

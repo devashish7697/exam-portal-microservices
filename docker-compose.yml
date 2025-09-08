@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  # ------------------ Exam DB ------------------
+
   exam-db:
     image: mysql:8.0
     container_name: exam-db
@@ -12,7 +12,6 @@ services:
     networks:
       - exam-net
 
-  # ------------------ Exam Service ------------------
   exam-service:
     build: ./Examservice
     container_name: exam-service
@@ -25,7 +24,7 @@ services:
     networks:
       - exam-net
 
-  # ------------------ Question DB ------------------
+
   question-db:
     image: mysql:8.0
     container_name: question-db
@@ -33,11 +32,11 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: questiondb
     ports:
-      - "3308:3306"   # local 3308 → container 3306
+      - "3308:3306"
     networks:
       - exam-net
 
-  # ------------------ Question Service ------------------
+
   question-service:
     build: ./Questionservice
     container_name: question-service
@@ -46,7 +45,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
     ports:
-      - "8082:8080"   # local 8082 → container 8080
+      - "8082:8080"
     networks:
       - exam-net
 

@@ -8,10 +8,10 @@ import java.util.List;
 
 public interface ExamService {
 
-    public Exam createExam(ExamRequest request);
+    public ExamResponse createExam(ExamRequest request);
     public List<ExamResponse> getAllExams();
     public ExamResponse getExam(Long examId);
 
-    public Exam updateExam(Long id, ExamRequest updatedExamRequest);
+    public ExamResponse updateExam(Long id, ExamRequest updatedExamRequest);
     public void removeExam(Long id);
 }
