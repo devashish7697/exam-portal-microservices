@@ -49,6 +49,30 @@ services:
     networks:
       - exam-net
 
+  user-db:
+    image: mysql:8.0
+    container_name: user-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: user_db
+    ports:
+      - "3309:3306"
+    networks:
+      - exam-net
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    depends_on:
+      - user-db
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8083:8080"
+    networks:
+      - exam-net
+
+
 # Shared network
 networks:
   exam-net:
