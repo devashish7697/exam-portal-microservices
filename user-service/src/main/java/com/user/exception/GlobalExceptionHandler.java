@@ -27,6 +27,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(error, headers, status);
     }
 
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<ApiError> handleUSerException(UserException ex) {
+        ApiError err = new ApiError(HttpStatus.NOT_FOUND.value(), "user Not Found", List.of(ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex) {
         ApiError err = new ApiError(HttpStatus.NOT_FOUND.value(), "Not Found", List.of(ex.getMessage()));

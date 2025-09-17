@@ -6,45 +6,46 @@ import com.user.entites.Role;
 import com.user.entites.User;
 import com.user.dto.UserResponse;
 import com.user.exception.ResourceNotFoundException;
+import com.user.exception.UserException;
 import com.user.repository.UserRepository;
 import lombok.Data;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 @Service
 public class UserServiceImplements implements UserService{
 
     private final UserRepository repo;
-    private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public UserResponse createUser(UserRequest request) {
+    public UserResponse registerOrUpdate(UserRequest request) {
 
-        // check before user creation
-        if (repo.existsByUsername(request.getUsername())){
-            throw new IllegalArgumentException("Username already Exists");
-        }
-        if (repo.existsByEmail(request.getEmail())){
-            throw new IllegalArgumentException("Email already Exists");
-        }
+       User user = repo.findByProviderAndProviderId(request.getProvider(), request.getProviderId())
+               .orElse(new User());
 
-        User user = new User();
-        user.setUsername(request.getUsername());
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRoles(Role.ROLE_USER);
-        user.setCreatedAt(Instant.now());
-        user.setUpdatedAt(Instant.now());
+        user.setProvider(request.getProvider());
+        user.setProviderId(request.getProviderId());
+
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            user.setRoles(new HashSet<>(Set.of(Role.ROLE_USER)));
+        } else {
+            // Ensure ROLE_USER is always present
+            user.getRoles().add(Role.ROLE_USER);
+        }
 
         User savedUser = repo.save(user);
-        return toResponse(savedUser);
+        return modelMapper.map(savedUser, UserResponse.class);
     }
 
     @Transactional(readOnly = true)
@@ -52,20 +53,23 @@ public class UserServiceImplements implements UserService{
     public UserResponse getuserById(Long id) {
         User user = repo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not Found with id : "+id));
-        return toResponse(user);
+        return modelMapper.map(user, UserResponse.class);
     }
 
 
     @Override
-    public UserResponse getUserByUsername(String username) {
-        return repo.findByUsername(username).map(this::toResponse)
-                .orElseThrow(() -> new IllegalArgumentException("User not Found with username : "+username));
+    public UserResponse getUserByEmail(String email) {
+        User user =  repo.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not Found with username : "+email));
+        return modelMapper.map(user, UserResponse.class);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<UserResponse> getAllUser() {
-        return repo.findAll().stream().map(this::toResponse).toList();
+        return repo.findAll().stream()
+                .map(user -> modelMapper.map(user, UserResponse.class))
+                .collect(Collectors.toList());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -74,12 +78,22 @@ public class UserServiceImplements implements UserService{
         if (repo.existsById(id)){
             User user = repo.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-            //check for username already exists
-            if (request.getUsername() != null && !request.getUsername().isBlank()){
-                if (!request.getUsername().equals(user.getUsername()) && repo.existsByUsername(request.getUsername())){
-                    throw new IllegalArgumentException("Username already exists, try setting different username");
+            if (request.getProvider() != null && !request.getProvider().isBlank() &&
+                    request.getProviderId() != null && !request.getProviderId().isBlank()) {
+
+                Optional<User> existing = repo.findByProviderAndProviderId(
+                        request.getProvider(), request.getProviderId());
+
+                if (existing.isPresent() && !existing.get().getId().equals(id)) {
+                    throw new IllegalArgumentException(
+                            "Another user already exists with provider "
+                                    + request.getProvider() + " and providerId "
+                                    + request.getProviderId()
+                    );
                 }
-                user.setUsername(request.getUsername());
+
+                user.setProvider(request.getProvider());
+                user.setProviderId(request.getProviderId());
             }
 
             // check if email field not null or empty
@@ -87,17 +101,12 @@ public class UserServiceImplements implements UserService{
               user.setEmail(request.getEmail());
             }
 
-            if (request.getPassword() != null && !request.getPassword().isBlank()){
-                user.setPassword(passwordEncoder.encode(request.getPassword()));
-            }
-
             if (request.getName() != null && !request.getName().isBlank()){
                 user.setName(request.getName());
             }
 
-            user.setUpdatedAt(Instant.now());
             User updated = repo.save(user);
-            return toResponse(updated);
+            return modelMapper.map(updated, UserResponse.class);
 
         }else {
             throw new IllegalArgumentException("User Not found With id : "+id);
@@ -108,36 +117,22 @@ public class UserServiceImplements implements UserService{
     @Override
     public void deleteUser(Long id) {
         if (!repo.existsById(id)){
-            repo.findById(id).orElseThrow(() -> new IllegalArgumentException("user nor found with id : "+id));
+            throw new UserException("user not found with id : "+id);
         }
         repo.deleteById(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void UpdateRole(Long id, RoleUpdateRequest request) {
+    public UserResponse UpdateRole(Long id, RoleUpdateRequest request) {
         if (repo.existsById(id)){
-            User user = repo.findById(id).orElseThrow(() -> new IllegalArgumentException("User not Found with id : "+id));
-            if (request.getRole() != null){
-                user.setRoles(request.getRole());
-                user.setUpdatedAt(Instant.now());
-                repo.save(user);
-            }
+            User user = repo.findById(id).
+                    orElseThrow(() -> new UserException("User not found with id : "+id));
+            user.setRoles(request.getRoles());
+           User saved = repo.save(user);
+           return modelMapper.map(saved, UserResponse.class);
         } else {
-            repo.findById(id).orElseThrow(() -> new IllegalArgumentException("user nor found with id : "+id));
+            throw new UserException("user nor found with id : "+id);
         }
-    }
-
-    private UserResponse toResponse(User u) {
-        UserResponse r = new UserResponse();
-        r.setUsername(u.getUsername());
-        r.setEmail(u.getEmail());
-        r.setName(u.getName());
-        r.setId(u.getId());
-        r.setRole(u.getRoles());
-        r.setCreatedAt(u.getCreatedAt());
-        r.setUpdatedAt(u.getUpdatedAt());
-
-        return r;
     }
 }

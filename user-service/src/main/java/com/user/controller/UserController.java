@@ -25,14 +25,14 @@ public class UserController {
     // Signup
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@Valid @RequestBody UserRequest request) {
-        UserResponse created = service.createUser(request);
+        UserResponse created = service.registerOrUpdate(request);
         return ResponseEntity.created(URI.create("/api/users/" + created.getId())).body(created);
     }
 
     // Admin: create user other than signup (optional)
     @PostMapping
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserRequest request) {
-        UserResponse created = service.createUser(request);
+        UserResponse created = service.registerOrUpdate(request);
         return ResponseEntity.created(URI.create("/api/users/" + created.getId())).body(created);
     }
 
@@ -41,7 +41,7 @@ public class UserController {
         return ResponseEntity.ok(service.getuserById(id));
     }
 
-    @GetMapping
+    @GetMapping("/get")
     public ResponseEntity<List<UserResponse>> getAll() {
         return ResponseEntity.ok(service.getAllUser());
     }

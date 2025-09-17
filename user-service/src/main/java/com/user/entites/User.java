@@ -4,13 +4,15 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Entity
 @Table(name = "users",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"username"}),
-                @UniqueConstraint(columnNames = {"email"})
+                @UniqueConstraint(columnNames = {"provider", "providerId"})
         })
 public class User {
 
@@ -19,21 +21,32 @@ public class User {
     private Long id;
 
     @Column(nullable = false)
-    private String username;
+    private String provider;
+
+    @Column(nullable = false)
+    private String providerId;
 
     @Column(nullable = false)
     private String email;
 
     private String name;
 
-    @Column(nullable = false)
-    private String password;
-
+    @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role roles;
+    @Column(name = "role", nullable = false)
+    private Set<Role> roles = new HashSet<>();
 
-    private Instant createdAt;
-    private Instant updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
 }

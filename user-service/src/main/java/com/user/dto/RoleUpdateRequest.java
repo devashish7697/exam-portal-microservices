@@ -3,7 +3,9 @@ package com.user.dto;
 import com.user.entites.Role;
 import lombok.Data;
 
+import java.util.Set;
+
 @Data
 public class RoleUpdateRequest {
-    private Role role;
+    private Set<Role> roles;
 }
