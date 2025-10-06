@@ -25,20 +25,20 @@ public class UserController {
     // Signup
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@Valid @RequestBody UserRequest request) {
-        UserResponse created = service.registerOrUpdate(request);
+        UserResponse created = service.createUSer(request);
         return ResponseEntity.created(URI.create("/api/users/" + created.getId())).body(created);
     }
 
     // Admin: create user other than signup (optional)
     @PostMapping
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserRequest request) {
-        UserResponse created = service.registerOrUpdate(request);
+        UserResponse created = service.createUSer(request);
         return ResponseEntity.created(URI.create("/api/users/" + created.getId())).body(created);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(service.getuserById(id));
+        return ResponseEntity.ok(service.getUserById(id));
     }
 
     @GetMapping("/get")
@@ -61,6 +61,11 @@ public class UserController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<UserResponse>> searchUser(@RequestParam String username){
+        return ResponseEntity.ok(service.searchUserByUsername(username));
     }
 }
 

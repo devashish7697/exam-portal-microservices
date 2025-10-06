@@ -53,7 +53,7 @@ services:
     image: mysql:8.0
     container_name: user-db
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${USER_DB_PASSWORD}
       MYSQL_DATABASE: user_db
     ports:
       - "3309:3306"
@@ -63,6 +63,8 @@ services:
   user-service:
     build: ./user-service
     container_name: user-service
+    env_file:
+      - .env
     depends_on:
       - user-db
     environment:

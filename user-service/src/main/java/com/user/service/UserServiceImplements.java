@@ -25,33 +25,34 @@ public class UserServiceImplements implements UserService{
 
     private final UserRepository repo;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public UserResponse registerOrUpdate(UserRequest request) {
+    public UserResponse createUSer(UserRequest request) {
 
-       User user = repo.findByProviderAndProviderId(request.getProvider(), request.getProviderId())
-               .orElse(new User());
+        if (!repo.existsByUsername(request.getUsername()) || !repo.existsByEmail(request.getEmail())){
+            User user = new User();
 
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setProvider(request.getProvider());
-        user.setProviderId(request.getProviderId());
+            user.setEmail(request.getEmail());
+            user.setUsername(request.getUsername());
+            user.setName(request.getName());
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            user.setRoles(Set.of(Role.ROLE_USER));
 
-        if (user.getRoles() == null || user.getRoles().isEmpty()) {
-            user.setRoles(new HashSet<>(Set.of(Role.ROLE_USER)));
-        } else {
-            // Ensure ROLE_USER is always present
-            user.getRoles().add(Role.ROLE_USER);
+
+
+            User savedUser = repo.save(user);
+            return modelMapper.map(savedUser, UserResponse.class);
         }
-
-        User savedUser = repo.save(user);
-        return modelMapper.map(savedUser, UserResponse.class);
+        else {
+            throw new UserException("User Already exists");
+        }
     }
 
     @Transactional(readOnly = true)
     @Override
-    public UserResponse getuserById(Long id) {
+    public UserResponse getUserById(Long id) {
         User user = repo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not Found with id : "+id));
         return modelMapper.map(user, UserResponse.class);
@@ -76,42 +77,24 @@ public class UserServiceImplements implements UserService{
     @Transactional(rollbackFor = Exception.class)
     @Override
     public UserResponse updateUser(Long id, UserRequest request) {
-        if (repo.existsById(id)){
-            User user = repo.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-            if (request.getProvider() != null && !request.getProvider().isBlank() &&
-                    request.getProviderId() != null && !request.getProviderId().isBlank()) {
+            User user = repo.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-                Optional<User> existing = repo.findByProviderAndProviderId(
-                        request.getProvider(), request.getProviderId());
-
-                if (existing.isPresent() && !existing.get().getId().equals(id)) {
-                    throw new IllegalArgumentException(
-                            "Another user already exists with provider "
-                                    + request.getProvider() + " and providerId "
-                                    + request.getProviderId()
-                    );
-                }
-
-                user.setProvider(request.getProvider());
-                user.setProviderId(request.getProviderId());
+            if (!user.getEmail().equals(request.getEmail()) && repo.existsByEmail(request.getEmail())) {
+                throw new IllegalArgumentException("Email already exists");
+            }
+            if (!user.getUsername().equals(request.getUsername()) && repo.existsByUsername(request.getUsername())) {
+                throw new IllegalArgumentException("Username already exists");
             }
 
-            // check if email field not null or empty
-            if (request.getEmail() != null && !request.getEmail().isBlank()){
-              user.setEmail(request.getEmail());
-            }
-
-            if (request.getName() != null && !request.getName().isBlank()){
                 user.setName(request.getName());
-            }
+                user.setEmail(request.getEmail());
+                user.setUsername(request.getUsername());
+                user.setPassword(passwordEncoder.encode(request.getPassword()));
 
             User updated = repo.save(user);
             return modelMapper.map(updated, UserResponse.class);
-
-        }else {
-            throw new IllegalArgumentException("User Not found With id : "+id);
-        }
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -126,14 +109,20 @@ public class UserServiceImplements implements UserService{
     @Transactional(rollbackFor = Exception.class)
     @Override
     public UserResponse UpdateRole(Long id, RoleUpdateRequest request) {
-        if (repo.existsById(id)){
             User user = repo.findById(id).
                     orElseThrow(() -> new UserException("User not found with id : "+id));
             user.setRoles(request.getRoles());
            User saved = repo.save(user);
+
            return modelMapper.map(saved, UserResponse.class);
-        } else {
-            throw new UserException("user nor found with id : "+id);
-        }
+    }
+
+    @Override
+    public List<UserResponse> searchUserByUsername(String username) {
+        List<User> users = repo.searchUserByUsername(username);
+        List<UserResponse> result = users.stream()
+                .map(user -> modelMapper.map(user, UserResponse.class))
+                .collect(Collectors.toList());
+        return result;
     }
 }

@@ -9,8 +9,7 @@ import java.util.Set;
 @Data
 public class UserResponse {
     private Long id;
-    private String provider;
-    private String providerId;
+    private String username;
     private String email;
     private String name;
     private Set<Role> roles;
