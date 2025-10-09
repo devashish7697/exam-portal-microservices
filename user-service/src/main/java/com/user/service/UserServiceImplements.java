@@ -11,6 +11,7 @@ import com.user.exception.UserException;
 import com.user.repository.UserRepository;
 import lombok.Data;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,8 @@ public class UserServiceImplements implements UserService{
     private final UserRepository repo;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    @Value("${internal.service.token}")
+    private String serviceToken;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -130,7 +133,7 @@ public class UserServiceImplements implements UserService{
     @Override
     public UserCredentialDto getUserCredential(String usernameOrEmail, String serviceToken) {
         //verify internal call token
-        if (!"INTERNAL_TOKEN_123".equals(serviceToken)){
+        if (!serviceToken.equals(serviceToken)){
             throw new SecurityException("Unauthorized Internal Service Call");
         }
         Optional<User> optUser = repo.findByUsername(usernameOrEmail);
