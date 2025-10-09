@@ -4,9 +4,7 @@ import com.auth.dto.SignupRequest;
 import com.auth.dto.UserProfileRequest;
 import com.auth.dto.UserResponse;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,5 +19,11 @@ public interface UserClient {
 
     @GetMapping("/api/users/get")
     List<UserResponse> getAll();
+
+    @PostMapping("api/internal/users/credentials")
+    UserProfileRequest getUserProfile(
+            @RequestBody String usernameOrEmail,
+            @RequestHeader("X-INTERNAL-TOKEN") String serviceToken
+    );
 
 }
