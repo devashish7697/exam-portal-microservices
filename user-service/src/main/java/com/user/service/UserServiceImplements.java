@@ -1,6 +1,7 @@
 package com.user.service;
 
 import com.user.dto.RoleUpdateRequest;
+import com.user.dto.UserCredentialDto;
 import com.user.dto.UserRequest;
 import com.user.entites.Role;
 import com.user.entites.User;
@@ -31,7 +32,7 @@ public class UserServiceImplements implements UserService{
     @Override
     public UserResponse createUSer(UserRequest request) {
 
-        if (!repo.existsByUsername(request.getUsername()) || !repo.existsByEmail(request.getEmail())){
+        if (!repo.existsByUsername(request.getUsername()) && !repo.existsByEmail(request.getEmail())){
             User user = new User();
 
             user.setEmail(request.getEmail());
@@ -124,5 +125,27 @@ public class UserServiceImplements implements UserService{
                 .map(user -> modelMapper.map(user, UserResponse.class))
                 .collect(Collectors.toList());
         return result;
+    }
+
+    @Override
+    public UserCredentialDto getUserCredential(String usernameOrEmail, String serviceToken) {
+        //verify internal call token
+        if (!"INTERNAL_TOKEN_123".equals(serviceToken)){
+            throw new SecurityException("Unauthorized Internal Service Call");
+        }
+        Optional<User> optUser = repo.findByUsername(usernameOrEmail);
+        if (optUser.isEmpty()){
+            optUser = repo.findByEmail(usernameOrEmail);
+        }
+
+        User user = optUser.orElseThrow(() -> new RuntimeException("User not Found with email or username : "+usernameOrEmail));
+
+        UserCredentialDto userCredentialDto = new UserCredentialDto();
+        userCredentialDto.setId(user.getId());
+        userCredentialDto.setUsername(user.getUsername());
+        userCredentialDto.setEmail(user.getEmail());
+        userCredentialDto.setPassword(user.getPassword());
+        userCredentialDto.setRoles(user.getRoles().stream().map(Enum::name).collect(Collectors.toSet()));
+        return userCredentialDto;
     }
 }
