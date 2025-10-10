@@ -10,6 +10,7 @@ public class UserCredentialDto {
 
     private long id;
     private String email;
+    private String name;
     private String username;
     private String password;
     private Set<String> roles;
