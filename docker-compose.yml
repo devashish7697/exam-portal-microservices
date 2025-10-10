@@ -74,6 +74,20 @@ services:
     networks:
       - exam-net
 
+  auth-service:
+    build: ./Auth-Service
+    container_name: auth-service
+    env_file:
+      - .env
+    depends_on:
+      - user-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8084:8080"
+    networks:
+      - exam-net
+
 
 # Shared network
 networks:
