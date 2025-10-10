@@ -147,6 +147,7 @@ public class UserServiceImplements implements UserService{
         userCredentialDto.setId(user.getId());
         userCredentialDto.setUsername(user.getUsername());
         userCredentialDto.setEmail(user.getEmail());
+        userCredentialDto.setName(user.getName());
         userCredentialDto.setPassword(user.getPassword());
         userCredentialDto.setRoles(user.getRoles().stream().map(Enum::name).collect(Collectors.toSet()));
         return userCredentialDto;
