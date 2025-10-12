@@ -7,5 +7,5 @@ RUN mvn -B clean package -DskipTests
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-COPY --from=build /app/target/Auth-service.jar auth-service.jar
+COPY --from=build /app/target/Auth-Service.jar auth-service.jar
 ENTRYPOINT ["java","-jar","-Dspring.profiles.active=docker","auth-service.jar"]
