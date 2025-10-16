@@ -19,8 +19,8 @@ services:
       - exam-db
     environment:
       SPRING_PROFILES_ACTIVE: docker
-    ports:
-      - "8081:8080"   # local 8081 → container 8080
+    expose:
+      - "8080"   # local 8081 → container 8080
     networks:
       - exam-net
 
@@ -44,8 +44,8 @@ services:
       - question-db
     environment:
       SPRING_PROFILES_ACTIVE: docker
-    ports:
-      - "8082:8080"
+    expose:
+      - "8080"
     networks:
       - exam-net
 
@@ -69,8 +69,8 @@ services:
       - user-db
     environment:
       SPRING_PROFILES_ACTIVE: docker
-    ports:
-      - "8083:8080"
+    expose:
+      - "8080"
     networks:
       - exam-net
 
@@ -83,8 +83,25 @@ services:
       - user-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
+    expose:
+      - "8080"
+    networks:
+      - exam-net
+
+  gateway-service:
+    build: ./gateway-service
+    container_name: gateway-service
+    env_file:
+      - .env
+    depends_on:
+      - auth-service
+      - user-service
+      - exam-service
+      - question-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
     ports:
-      - "8084:8080"
+      - "8080:8080"
     networks:
       - exam-net
 

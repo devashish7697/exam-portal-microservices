@@ -1,4 +1,4 @@
-package security;
+package com.gateway.security;
 
 import io.jsonwebtoken.Claims;
 import org.springframework.http.HttpHeaders;
