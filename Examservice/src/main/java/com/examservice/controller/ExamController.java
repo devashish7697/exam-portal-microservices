@@ -12,7 +12,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/exams")
+@RequestMapping("/api/exams")
 public class ExamController {
 
     private ExamServiceImplements service;
